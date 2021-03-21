@@ -307,6 +307,8 @@ class BoundGitSource extends CachedSource {
       await _revisionCacheClones.putIfAbsent(revisionCachePath, () async {
         if (!entryExists(revisionCachePath)) {
           await _clone(_repoCachePath(ref), revisionCachePath);
+          // Call custom sample function _gitTag, with parameters giving the temp. git location. (Cache)
+          await _gitTag(revisionCachePath);
           await _checkOut(revisionCachePath, id.description['resolved-ref']);
           _writePackageList(revisionCachePath, [id.description['path']]);
         } else {
@@ -555,6 +557,27 @@ class BoundGitSource extends CachedSource {
       return git.run(args);
     }).then((result) => null);
   }
+
+  /// SAMPLE DEMO PROJECT FUNCTION (NOT TO BE INCLUDED IN PRODUCTION)
+  /// Takes [gitRepo](Location of temp. repo and run some basic commands to list
+  ///  out all tags and subsequently show contents of) all tags in repo, Also it
+  ///  takes an optional parameter [pubspecPath] which points to the location of
+  ///  pubspec file, This approach works but inefficient in the fact that whole
+  ///  repo would first have to be cloned and then tags and other data could be
+  ///  shown..
+  Future _gitTag(String gitRepo, {String pubspecPath='pubspec.yaml'}) async {
+    stdout.write("-----------------------------------------------------------\n");
+    var tags = await git
+      .run(['tag'], workingDir: gitRepo);
+
+    for(final tag in tags){
+      var lines = await git
+          .run(['show', '$tag:$pubspecPath'], workingDir: gitRepo);
+      stdout.write('Tag Name: $tag, Path: $pubspecPath\nContent:\n${lines.join('\n')}\n');
+      stdout.write("-----------------------------------------------------------\n");
+    }
+    return null;
+}
 
   /// Checks out the reference [ref] in [repoPath].
   Future _checkOut(String repoPath, String ref) {
