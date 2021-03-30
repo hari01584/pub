@@ -1,3 +1,5 @@
+# Note: Latest pubspec just to test the capability of custom pub parser! There's no technical difference in the code functionality except this pubspec.yaml to test the waters!
+
 name: pub
 
 environment:
